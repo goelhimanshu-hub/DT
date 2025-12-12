@@ -1,0 +1,473 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Roast & Rebuild</title>
+  <meta name="description" content="We pressure-test startups (roast), then rebuild them stronger with a clear plan." />
+  <meta name="theme-color" content="#0b0b0f" />
+  <style>
+    :root{
+      --bg:#0b0b0f; --card:#14151b; --muted:#9aa0a6; --text:#e7e9ee;
+      --warm:#ff5a3c; --cool:#2bd1a8; --accent:#ff8a5a;
+      --glow:0; --radius:16px; --shadow:0 6px 14px rgba(0,0,0,.25);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0;font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,sans-serif;background:radial-gradient(1200px 600px at 80% -10%, rgba(255,90,60,.08), transparent 60%), var(--bg);color:var(--text)}
+    a{color:var(--cool)}
+    .container{max-width:1100px;margin:0 auto;padding:24px}
+    .hero{position:relative;overflow:hidden;border-radius:calc(var(--radius) * 1.25);padding:64px 24px;background:linear-gradient(180deg, rgba(255,90,60,.06), rgba(43,209,168,.06));box-shadow:var(--shadow)}
+    .hero h1{font-size:clamp(28px, 4vw, 48px);line-height:1.1;margin:0 0 12px}
+    .hero p{max-width:680px;margin:0 0 24px;color:#cfd3da}
+    .btn{appearance:none;border:0;border-radius:999px;padding:12px 20px;background:linear-gradient(90deg, var(--warm), var(--accent));color:#101114;font-weight:700;cursor:pointer;box-shadow:0 6px 24px rgba(255,90,60,.35);transition:transform .15s ease, filter .15s ease}
+    .btn:hover{transform:translateY(-2px)}
+    .hero-accent{position:absolute;inset:auto -80px -80px auto;width:220px;height:220px;border-radius:50%;filter:blur(calc(20px * var(--glow)));background:radial-gradient(circle at 60% 40%, rgba(255,90,60,.7), rgba(255,90,60,.2), transparent 60%);pointer-events:none}
+
+    section{margin:48px 0}
+    h2{font-size:clamp(22px,2.6vw,32px);margin:0 0 12px}
+    .muted{color:var(--muted)}
+
+    .heat{display:grid;gap:12px;grid-template-columns:1fr auto;align-items:center;background:linear-gradient(180deg, rgba(255,90,60,.05), rgba(255,90,60,.02));border-radius:var(--radius);padding:16px;box-shadow:var(--shadow)}
+    .heat-meter{display:flex;align-items:center;gap:12px}
+    input[type=range]{width:100%}
+    .heat-chip{border-radius:999px;padding:6px 10px;background:#1e2029;border:1px solid #2a2c36;font-weight:600}
+    .heat-glow{height:8px;border-radius:99px;background:linear-gradient(90deg,#35363f, #ff5a3c);box-shadow:0 0 calc(10px + 30px * var(--glow)) rgba(255,90,60,.5) inset}
+
+    .grid{display:grid;gap:16px}
+    @media (min-width:720px){.grid{grid-template-columns:repeat(3,1fr)}}
+    .card{background:linear-gradient(180deg,#14151b,#101217);border:1px solid #22242e;border-radius:var(--radius);padding:16px;box-shadow:var(--shadow)}
+    .card h3{margin:0 0 8px;font-size:18px}
+
+    .tabs{display:flex;gap:8px;margin:8px 0 12px}
+    .tab{background:#1b1d25;color:#cfd3da;border:1px solid #2a2c36;border-radius:10px;padding:6px 10px;cursor:pointer}
+    .tab[aria-selected="true"]{background:linear-gradient(90deg, rgba(255,90,60,.2), rgba(43,209,168,.2));color:#fff;border-color:#3a3d49}
+    .panel[hidden]{display:none}
+    ul.list{padding-left:18px;margin:8px 0}
+
+    .fix-btn{margin-top:8px}
+
+    .plan{display:grid;gap:12px;grid-template-columns:1fr}
+    .plan-item{display:flex;gap:8px;align-items:center;justify-content:space-between;background:#12131a;border:1px solid #22242e;padding:10px;border-radius:12px}
+    .plan-actions{display:flex;gap:8px}
+
+    .cases{display:grid;gap:16px}
+    @media (min-width:720px){.cases{grid-template-columns:repeat(2,1fr)}}
+    .case{display:grid;gap:8px;background:#12131a;border:1px solid #22242e;border-radius:var(--radius);padding:12px}
+    .delta{font-variant-numeric:tabular-nums;font-weight:700}
+
+    form{display:grid;gap:12px}
+    .row{display:grid;gap:12px}
+    @media (min-width:720px){.row{grid-template-columns:1fr 1fr}}
+    input, textarea{width:100%;background:#0f1016;border:1px solid #272a34;border-radius:12px;padding:10px;color:#fff}
+    input:focus, textarea:focus{outline:2px solid #2bd1a8;outline-offset:1px}
+    .error{color:#ff9e8a;font-size:14px}
+
+    footer{margin:48px 0 24px;color:#8f95a0;text-align:center}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header class="hero" id="hero">
+      <h1>If startups can’t take the heat, we’ll roast them—then rebuild them.</h1>
+      <p class="muted">We put ideas under pressure (kindly savage your assumptions), extract the signal, and turn findings into a practical rebuild plan you can ship this week.</p>
+      <button class="btn" data-scroll="#roast" aria-label="Start the roast">Start the Roast</button>
+      <div class="hero-accent" aria-hidden="true"></div>
+    </header>
+
+    <section aria-labelledby="heat-title">
+      <h2 id="heat-title">How spicy is your current situation?</h2>
+      <div class="heat" role="group" aria-labelledby="heat-title">
+        <div class="heat-meter" style="grid-column:1 / -1">
+          <label for="heat" class="muted">Heat level</label>
+          <input id="heat" type="range" min="0" max="100" step="1" value="40" aria-valuemin="0" aria-valuemax="100" aria-valuenow="40" aria-label="Heat level" />
+          <span class="heat-chip" id="heat-label" aria-live="polite">Spicy</span>
+        </div>
+        <div class="heat-glow" style="grid-column:1 / -1"></div>
+      </div>
+    </section>
+
+    <section id="roast" aria-labelledby="roast-title">
+      <h2 id="roast-title">Roast: pressure-test the weak spots</h2>
+      <p class="muted">Click through each area. Add fixes to your plan as you go.</p>
+      <div class="grid" id="issues"></div>
+    </section>
+
+    <section id="playbook" aria-labelledby="playbook-title">
+      <h2 id="playbook-title">Rebuild plan</h2>
+      <p class="muted">Your selected fixes appear below. Turn any fix into a concrete task.</p>
+      <div class="plan" id="plan">
+        <div class="muted" id="plan-empty">No fixes yet. Add some from the Roast cards.</div>
+      </div>
+    </section>
+
+    <section id="cases" aria-labelledby="cases-title">
+      <h2 id="cases-title">Case snapshots</h2>
+      <div class="cases" id="cases-grid"></div>
+    </section>
+
+    <section id="cta" aria-labelledby="cta-title">
+      <h2 id="cta-title">Book a Roast & Rebuild session</h2>
+      <form id="booking" novalidate>
+        <div class="row">
+          <div>
+            <label for="name">Your name</label>
+            <input id="name" name="name" required autocomplete="name" />
+            <div class="error" data-error-for="name"></div>
+          </div>
+          <div>
+            <label for="email">Email</label>
+            <input id="email" name="email" type="email" required autocomplete="email" />
+            <div class="error" data-error-for="email"></div>
+          </div>
+        </div>
+        <div class="row">
+          <div>
+            <label for="url">Startup URL</label>
+            <input id="url" name="url" type="url" placeholder="https://example.com" required />
+            <div class="error" data-error-for="url"></div>
+          </div>
+          <div>
+            <label for="top">Top problem</label>
+            <input id="top" name="top" required placeholder="e.g., low activation" />
+            <div class="error" data-error-for="top"></div>
+          </div>
+        </div>
+        <div>
+          <label for="details">Context</label>
+          <textarea id="details" name="details" rows="4" placeholder="What have you tried? Any metrics?"></textarea>
+        </div>
+        <button class="btn" type="submit">Request session</button>
+        <div id="form-success" class="muted" style="display:none">Thanks! We’ll reach out shortly.</div>
+      </form>
+    </section>
+
+    <footer>
+      © <span id="year"></span> Roast & Rebuild — Built for founders under fire
+    </footer>
+  </div>
+
+  <script>
+    // ---------- Config ----------
+    const API_BASE = "http://localhost:5000";
+
+    // ---------- Data ----------
+    const ISSUES = [
+      { id:'market', title:'Market Misfit',
+        symptoms:['Low retention','Short sessions',"Prospects don't instantly get the value"],
+        evidence:['< 20% 8-week retention','NPS ≤ 0','Low direct traffic'],
+        fixes:[
+          { id:'icp', text:'Tighten ICP + persona; narrow the who' },
+          { id:'interview', text:'Run 10 problem interviews / week' },
+          { id:'position', text:'Rewrite positioning with Value > Feature' },
+        ]
+      },
+      { id:'product', title:'Weak Activation',
+        symptoms:["Users sign up but don't activate",'Onboarding drop-offs'],
+        evidence:['Activation < 30%','Time-to-value > 5 minutes'],
+        fixes:[
+          { id:'ttv', text:'Cut time-to-value under 2 minutes' },
+          { id:'clm', text:'Checklist onboarding with progress memory' },
+          { id:'aha', text:'Instrument and surface the Aha moment' },
+        ]
+      },
+      { id:'gtm', title:'Leaky Funnel',
+        symptoms:['Lots of demos, few closes','High CAC vs LTV'],
+        evidence:['Reply rates < 3%','Win rate < 20%'],
+        fixes:[
+          { id:'offer', text:'Craft a sharp offer (ROI + guarantee)' },
+          { id:'lp', text:'Rewrite landing with proof + outcomes' },
+          { id:'cadence', text:'3-step email + social proof sequence' },
+        ]
+      },
+      { id:'finance', title:'Unit Economics Off',
+        symptoms:['Burn too high','Payback > 12 months'],
+        evidence:['Gross margin < 60%','Hidden COGS growth'],
+        fixes:[
+          { id:'pricing', text:'Value-based pricing test (3 tiers)' },
+          { id:'cohort', text:'Cohort LTV/CAC by channel' },
+          { id:'trim', text:'Trim non-core spend 15%' },
+        ]
+      },
+      { id:'team', title:'Ownership Gaps',
+        symptoms:['Slow decisions','Handoffs drop context'],
+        evidence:['Cycle time > 1 week','No DRI per workstream'],
+        fixes:[
+          { id:'dri', text:'Assign DRI per bet with clear exit' },
+          { id:'rituals', text:'Weekly review: metrics → bets → owners' },
+          { id:'specs', text:'One-pager specs: problem → success' },
+        ]
+      }
+    ];
+
+    const CASES = [
+      { name:'Alpha', metric:'Activation', before:21, after:48, weeks:6 },
+      { name:'Beta', metric:'Churn %', before:7.2, after:3.1, weeks:8 },
+      { name:'Gamma', metric:'Payback (mo)', before:14, after:8, weeks:7 },
+      { name:'Delta', metric:'Win rate %', before:16, after:29, weeks:5 },
+    ];
+
+    const PLAN = { fixes:new Set(), tasks:[] };
+
+    // ---------- Helpers ----------
+    const $ = sel => document.querySelector(sel);
+    const $$ = sel => Array.from(document.querySelectorAll(sel));
+    const slug = s => s.toLowerCase().replace(/[^a-z0-9]+/g,'-');
+
+    function readableHeat(v){
+      if(v < 34) return 'Mild';
+      if(v < 67) return 'Spicy';
+      return 'On Fire';
+    }
+
+    async function sendInteraction(type, data){
+      try{
+        await fetch(`${API_BASE}/api/interaction`, {
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ type, data })
+        });
+      }catch(e){ /* ignore network errors for UX */ }
+    }
+
+    // ---------- Render: Issues ----------
+    function renderIssues(){
+      const wrap = $('#issues');
+      wrap.innerHTML = '';
+      ISSUES.forEach(issue => {
+        const card = document.createElement('article');
+        card.className = 'card';
+        card.setAttribute('aria-labelledby', `h-${issue.id}`);
+        card.dataset.issue = issue.id;
+        card.innerHTML = `
+          <h3 id="h-${issue.id}">${issue.title}</h3>
+          <div class="tabs" role="tablist" aria-label="${issue.title} tabs">
+            <button class="tab" role="tab" aria-selected="true" aria-controls="p-${issue.id}-sym">Symptoms</button>
+            <button class="tab" role="tab" aria-selected="false" aria-controls="p-${issue.id}-evi">Evidence</button>
+            <button class="tab" role="tab" aria-selected="false" aria-controls="p-${issue.id}-fix">Fixes</button>
+          </div>
+          <div id="p-${issue.id}-sym" class="panel" role="tabpanel">
+            <ul class="list">${issue.symptoms.map(li=>`<li>${li}</li>`).join('')}</ul>
+          </div>
+          <div id="p-${issue.id}-evi" class="panel" role="tabpanel" hidden>
+            <ul class="list">${issue.evidence.map(li=>`<li>${li}</li>`).join('')}</ul>
+          </div>
+          <div id="p-${issue.id}-fix" class="panel" role="tabpanel" hidden>
+            <ul class="list">${issue.fixes.map(f=>`<li class="fix" data-fix-id="${f.id}">
+              <span>${f.text}</span>
+              <div><button class="tab fix-btn" data-action="add-fix" aria-label="Add fix ${f.text}">Add to plan</button></div>
+            </li>`).join('')}</ul>
+          </div>
+        `;
+        wrap.appendChild(card);
+      });
+    }
+
+    // ---------- Render: Plan ----------
+    function renderPlan(){
+      const wrap = $('#plan');
+      const empty = $('#plan-empty');
+      const fixes = [...PLAN.fixes].map(id => findFixById(id));
+      wrap.querySelectorAll('.plan-item').forEach(n => n.remove());
+      if(!fixes.length){ empty.style.display = 'block'; return; }
+      empty.style.display = 'none';
+      fixes.forEach(fix => {
+        const row = document.createElement('div');
+        row.className = 'plan-item';
+        row.innerHTML = `
+          <div>
+            <div style="font-weight:700">${fix.text}</div>
+            <div class="muted" style="font-size:14px">${fix.issueTitle}</div>
+          </div>
+          <div class="plan-actions">
+            <button class="tab" data-action="make-task" data-fix-id="${fix.id}">Create task</button>
+            <button class="tab" data-action="remove-fix" data-fix-id="${fix.id}">Remove</button>
+          </div>
+        `;
+        wrap.appendChild(row);
+      });
+    }
+
+    function findFixById(id){
+      for(const issue of ISSUES){
+        const f = issue.fixes.find(x => x.id === id);
+        if(f) return { ...f, issueId: issue.id, issueTitle: issue.title };
+      }
+      return null;
+    }
+
+    // ---------- Cases ----------
+    function renderCases(){
+      const grid = $('#cases-grid');
+      grid.innerHTML = '';
+      CASES.forEach(c => {
+        const id = `case-${slug(c.name)}-${slug(c.metric)}`;
+        const delta = (c.after - c.before).toFixed(1);
+        const better = (c.metric.toLowerCase().includes('churn') || c.metric.toLowerCase().includes('payback')) ? (c.after < c.before) : (c.after > c.before);
+        const el = document.createElement('article');
+        el.className = 'case';
+        el.innerHTML = `
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div style="font-weight:700">${c.name}</div>
+            <div class="delta" style="color:${better? 'var(--cool)':'var(--warm)'}">${delta > 0 ? '+' : ''}${delta}</div>
+          </div>
+          <div class="muted">${c.metric} • ${c.weeks} weeks</div>
+          <canvas id="${id}" height="60" style="width:100%;height:60px"></canvas>
+        `;
+        grid.appendChild(el);
+        drawSparkline(`#${id}`, [c.before, c.after]);
+      });
+    }
+
+    function drawSparkline(sel, pts){
+      const canvas = document.querySelector(sel);
+      const ctx = canvas.getContext('2d');
+      const dpr = window.devicePixelRatio || 1;
+      const cssW = canvas.clientWidth, cssH = canvas.clientHeight;
+      canvas.width = cssW * dpr; canvas.height = cssH * dpr; ctx.scale(dpr, dpr);
+      ctx.clearRect(0,0,cssW,cssH);
+      const min = Math.min(...pts), max = Math.max(...pts);
+      const pad = 6; const range = (max - min) || 1;
+      const x0 = pad, x1 = cssW - pad;
+      const y = v => cssH - pad - ((v - min) / range) * (cssH - pad*2);
+      ctx.lineWidth = 2; ctx.lineCap = 'round';
+      ctx.globalAlpha = .25; ctx.beginPath(); ctx.moveTo(x0, cssH - pad); ctx.lineTo(x1, cssH - pad); ctx.strokeStyle = '#3a3d49'; ctx.stroke(); ctx.globalAlpha = 1;
+      ctx.beginPath(); ctx.moveTo(x0, y(pts[0])); ctx.lineTo(x1, y(pts[1])); ctx.strokeStyle = '#ffffff'; ctx.stroke();
+      [ {x:x0, y:y(pts[0])}, {x:x1, y:y(pts[1])} ].forEach(p=>{ ctx.beginPath(); ctx.arc(p.x, p.y, 3, 0, Math.PI*2); ctx.fillStyle = '#ffffff'; ctx.fill(); });
+    }
+
+    // ---------- Heat interactions ----------
+    function updateHeatUI(v){
+      const label = $('#heat-label');
+      label.textContent = readableHeat(v);
+      $('#heat').setAttribute('aria-valuenow', String(v));
+      document.documentElement.style.setProperty('--glow', (v/100).toFixed(2));
+    }
+
+    // ---------- Storage ----------
+    function savePlan(){
+      try{ localStorage.setItem('roastRebuildPlan', JSON.stringify([...PLAN.fixes])); }catch{}
+    }
+    function loadPlan(){
+      try{
+        const raw = localStorage.getItem('roastRebuildPlan');
+        if(raw){ const arr = JSON.parse(raw); PLAN.fixes = new Set(arr); }
+      }catch{}
+    }
+
+    // ---------- Events ----------
+    function onTabClick(e){
+      const btn = e.target.closest('.tab'); if(!btn) return;
+      if(btn.dataset.action) return;
+      const tabs = btn.parentElement.querySelectorAll('.tab');
+      tabs.forEach(t => t.setAttribute('aria-selected','false'));
+      btn.setAttribute('aria-selected','true');
+      const card = btn.closest('.card');
+      card.querySelectorAll('.panel').forEach(p => p.hidden = true);
+      const panel = card.querySelector('#' + btn.getAttribute('aria-controls'));
+      if(panel) panel.hidden = false;
+    }
+
+    async function onAddFixClick(e){
+      const btn = e.target.closest('[data-action="add-fix"]');
+      if(!btn) return;
+      const li = btn.closest('.fix');
+      const id = li?.dataset.fixId; if(!id) return;
+      PLAN.fixes.add(id); savePlan(); renderPlan();
+      btn.textContent = 'Added'; btn.disabled = true;
+      sendInteraction('add_fix', { id });
+    }
+
+    function onPlanAction(e){
+      const act = e.target.closest('[data-action]'); if(!act) return;
+      const id = act.dataset.fixId;
+      if(act.dataset.action === 'remove-fix'){
+        PLAN.fixes.delete(id); savePlan(); renderPlan();
+        $$(`.fix[data-fix-id="${id}"] [data-action="add-fix"]`).forEach(b => { b.disabled=false; b.textContent='Add to plan'; });
+      }
+      if(act.dataset.action === 'make-task'){
+        const text = findFixById(id)?.text || 'Task';
+        const owner = prompt('Owner (optional)');
+        const due = prompt('Due date (YYYY-MM-DD, optional)');
+        PLAN.tasks.push({id, text, owner, due});
+        alert('Task created' + (owner? ` for ${owner}`:''));
+        sendInteraction('task_created', { id, owner, due });
+      }
+    }
+
+    async function onBookingSubmit(e){
+      e.preventDefault();
+      const form = e.currentTarget;
+      const fields = ['name','email','url','top'];
+      let ok = true;
+      fields.forEach(f => {
+        const el = form.querySelector('#'+f);
+        const err = form.querySelector(`[data-error-for="${f}"]`);
+        err.textContent = '';
+        if(!el.value.trim()) { err.textContent = 'Required'; ok=false; return; }
+        if(f==='email' && !/.+@.+\..+/.test(el.value)) { err.textContent='Invalid email'; ok=false; }
+        if(f==='url' && !/^https?:\/\//.test(el.value)) { err.textContent='Enter full URL starting with http(s)://'; ok=false; }
+      });
+      if(!ok) return;
+
+      const payload = {
+        name: form.name.value.trim(),
+        email: form.email.value.trim(),
+        url: form.url.value.trim(),
+        top: form.top.value.trim(),
+        details: form.details.value.trim()
+      };
+
+      try{
+        const r = await fetch(`${API_BASE}/api/book`, {
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body: JSON.stringify(payload)
+        });
+        const data = await r.json();
+        if(!r.ok){ throw new Error(data?.error || 'Failed'); }
+        form.reset();
+        $('#form-success').style.display='block';
+        setTimeout(()=> $('#form-success').style.display='none', 4000);
+      }catch(err){
+        const errBox = form.querySelector('[data-error-for="url"]');
+        if(errBox) errBox.textContent = err.message || 'Submission failed';
+      }
+    }
+
+    function onSmoothScroll(e){
+      const targetSel = e.currentTarget.getAttribute('data-scroll');
+      const el = document.querySelector(targetSel);
+      if(el) el.scrollIntoView({behavior:'smooth', block:'start'});
+    }
+
+    // ---------- Init ----------
+    document.addEventListener('DOMContentLoaded', () => {
+      $('#year').textContent = new Date().getFullYear();
+
+      const heat = $('#heat');
+      updateHeatUI(Number(heat.value));
+      let heatTimer;
+      heat.addEventListener('input', () => {
+        const v = Number(heat.value); updateHeatUI(v);
+        clearTimeout(heatTimer);
+        heatTimer = setTimeout(()=> sendInteraction('heat', { value: v }), 300);
+      });
+
+      $('[data-scroll]')?.addEventListener('click', onSmoothScroll);
+
+      renderIssues();
+      $('#issues').addEventListener('click', onTabClick);
+      $('#issues').addEventListener('click', onAddFixClick);
+
+      loadPlan();
+      renderPlan();
+      $('#plan').addEventListener('click', onPlanAction);
+
+      renderCases();
+
+      $('#booking').addEventListener('submit', onBookingSubmit);
+    });
+  </script>
+</body>
+</html>
